@@ -60,6 +60,59 @@
 
 #define LOG_MODULE "RPL"
 #define LOG_LEVEL LOG_LEVEL_RPL
+#ifdef __GNUC__
+#define RPL_HOOK_WEAK __attribute__((weak))
+#else
+#define RPL_HOOK_WEAK
+#endif
+
+/* Weak default implementations for optional root-side DAO hooks.
+ * Applications (e.g., border routers) can override these by providing
+ * non-weak functions with the same signatures in their own code.
+ *
+ * ha_rpl_dao_route_event():
+ *   Called in storing mode when a DAO installs / refreshes / removes
+ *   a unicast route at the root.
+ *
+ * ha_rpl_dao_sr_event():
+ *   Called in non-storing mode when the root updates source routing
+ *   state based on a DAO.
+ */
+
+RPL_HOOK_WEAK void
+ha_rpl_dao_route_event(const rpl_dag_t *dag,
+                       const uip_ipaddr_t *target,
+                       uint8_t prefixlen,
+                       const uip_ipaddr_t *sender,
+                       uint8_t lifetime,
+                       int is_nopath)
+{
+  (void)dag;
+  (void)target;
+  (void)prefixlen;
+  (void)sender;
+  (void)lifetime;
+  (void)is_nopath;
+}
+
+RPL_HOOK_WEAK void
+ha_rpl_dao_sr_event(const rpl_dag_t *dag,
+                    const uip_ipaddr_t *target,
+                    uint8_t prefixlen,
+                    const uip_ipaddr_t *sender,
+                    const uip_ipaddr_t *parent,
+                    uint8_t lifetime,
+                    int is_nopath)
+{
+  (void)dag;
+  (void)target;
+  (void)prefixlen;
+  (void)sender;
+  (void)parent;
+  (void)lifetime;
+  (void)is_nopath;
+}
+
 
 /*---------------------------------------------------------------------------*/
 #define RPL_DIO_GROUNDED                 0x80
@@ -879,6 +932,12 @@ dao_input_storing(void)
       dao_ack_output(instance, &dao_sender_addr, sequence,
                      RPL_DAO_ACK_UNCONDITIONAL_ACCEPT);
     }
+
+    /* Inform root-side hook about No-Path DAO in storing mode. */
+    ha_rpl_dao_route_event(dag, &prefix, prefixlen,
+                           &dao_sender_addr, lifetime,
+                           1 /* is_nopath */);
+
     return;
   }
 
@@ -918,6 +977,11 @@ dao_input_storing(void)
   /* Set the lifetime and clear the NOPATH bit. */
   rep->state.lifetime = RPL_LIFETIME(instance, lifetime);
   RPL_ROUTE_CLEAR_NOPATH_RECEIVED(rep);
+
+  /* Inform root-side hook about DAO route add/refresh in storing mode. */
+  ha_rpl_dao_route_event(dag, &prefix, prefixlen,
+                         &dao_sender_addr, lifetime,
+                         0 /* is_nopath = false */);
 
 #if RPL_WITH_MULTICAST
 fwd_dao:
@@ -1107,6 +1171,12 @@ dao_input_nonstoring(void)
   if(lifetime == RPL_ZERO_LIFETIME) {
     LOG_DBG("No-Path DAO received\n");
     uip_sr_expire_parent(dag, &prefix, &dao_parent_addr);
+
+    /* Inform root-side hook about No-Path DAO in non-storing mode. */
+    ha_rpl_dao_sr_event(dag, &prefix, prefixlen,
+                        &dao_sender_addr, &dao_parent_addr,
+                        lifetime,
+                        1 /* is_nopath */);
   } else {
     if(uip_sr_update_node(dag, &prefix, &dao_parent_addr,
                           RPL_LIFETIME(instance, lifetime)) == NULL) {
@@ -1117,6 +1187,12 @@ dao_input_nonstoring(void)
       LOG_WARN_("\n");
       return;
     }
+
+    /* Inform root-side hook about DAO SR-tree update in non-storing mode. */
+    ha_rpl_dao_sr_event(dag, &prefix, prefixlen,
+                        &dao_sender_addr, &dao_parent_addr,
+                        lifetime,
+                        0 /* is_nopath = false */);
   }
 
   if(flags & RPL_DAO_K_FLAG) {
