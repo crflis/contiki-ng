@@ -5,6 +5,7 @@
  * prefixed with "!L" so the host can distinguish log traffic from data.
  */
 
+#include "contiki.h"
 #include "os/services/rpl-border-router/embedded/br-log-conf.h"
 #include "os/services/rpl-border-router/embedded/br-link.h"
 

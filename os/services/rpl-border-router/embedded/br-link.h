@@ -7,6 +7,7 @@
 #ifndef BR_LINK_H_
 #define BR_LINK_H_
 
+#include "contiki.h"
 #include <stddef.h>
 #include <stdint.h>
 

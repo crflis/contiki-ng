@@ -2,16 +2,13 @@
  * Border router link framing selector (SLIP or COBS).
  */
 
+#include "contiki.h"
 #include "os/services/rpl-border-router/embedded/br-link.h"
 
-#if BR_CONF_LINK_FRAMING == BR_LINK_FRAMING_SLIP
-#include "dev/slip.h"
-#elif BR_CONF_LINK_FRAMING == BR_LINK_FRAMING_COBS
+#if BR_CONF_LINK_FRAMING == BR_LINK_FRAMING_COBS
 #include "dev/cobs.h"
-#include "dev/slip.h"
-#else
-#error "Unsupported BR_CONF_LINK_FRAMING"
 #endif
+#include "dev/slip.h"
 
 void
 br_link_write(const uint8_t *payload, size_t len)
