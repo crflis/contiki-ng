@@ -50,4 +50,10 @@
 #define UIP_CONF_TCP 1
 #endif
 
+#ifndef CONTIKI_TARGET_NATIVE
+/* Ship logs over SLIP with "!L" prefix while keeping normal stdout. */
+#define BR_LOG_CONF_SLIP_ENABLE 1
+#include "services/rpl-border-router/embedded/br-log-conf.h"
+#endif
+
 #endif /* PROJECT_CONF_H_ */
