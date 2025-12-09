@@ -27,4 +27,14 @@ The border-router link framing is selectable at build time:
 - Default: SLIP framing (unchanged IPv6 behavior).
 - Optional: COBS framing for all link traffic by defining
   `BR_CONF_LINK_FRAMING` to `BR_LINK_FRAMING_COBS` in your project config
-  before including `br-log-conf.h`. This requires a COBS-aware host peer.
+  before including `br-log-conf.h`. This requires a COBS-aware host peer that
+  reads COBS frames with a trailing 0x00 delimiter (logs remain `!L`-prefixed
+  inside those frames).
+
+Example project snippet (in `project-conf.h`), placed before including
+`br-log-conf.h`:
+```c
+#define BR_CONF_LINK_FRAMING BR_LINK_FRAMING_COBS
+#define BR_LOG_CONF_ENABLE 1
+#include "services/rpl-border-router/embedded/br-log-conf.h"
+```
