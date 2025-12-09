@@ -46,7 +46,7 @@
 /* Log configuration */
 #include "sys/log.h"
 #define LOG_MODULE "SLIP"
-#define LOG_LEVEL LOG_LEVEL_INFO
+#define LOG_LEVEL LOG_LEVEL_NONE
 /*---------------------------------------------------------------------------*/
 void set_prefix_64(uip_ipaddr_t *);
 
@@ -65,12 +65,6 @@ request_prefix(void)
   /* Attach IEEE address (last 8 bytes of link-layer address) for host-side use. */
   memcpy(&uip_buf[uip_len], &uip_lladdr.addr[UIP_LLADDR_LEN - 8], 8);
   uip_len += 8;
-
-  LOG_INFO("Request prefix with IID ");
-  for(int i = UIP_LLADDR_LEN - 8; i < UIP_LLADDR_LEN; i++) {
-    LOG_INFO_("%02x", uip_lladdr.addr[i]);
-  }
-  LOG_INFO_("\n");
 #endif
   slip_write(uip_buf, uip_len);
   uipbuf_clear();
