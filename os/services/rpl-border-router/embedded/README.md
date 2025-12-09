@@ -20,6 +20,26 @@ If you build your own project, include `br-log-conf.h` after setting the
 `BR_LOG_CONF_*` macros so `LOG_CONF_OUTPUT` is redirected before including
 `sys/log.h`.
 
+## RPL side-channel hooks
+
+- Border-router builds can export RPL-classic events over the side channel
+  (using `br_link_write` framing: SLIP default, COBS optional).
+- Enable with `BR_RPL_HOOKS_ENABLE` set to `1` in `project-conf.h`. The module
+  overrides weak hooks in RPL-classic to send `!R` messages for:
+  - DAO route changes (storing) with target/sender suffix and lifetime.
+  - DAO SR updates (non-storing) with target/sender/parent suffix.
+  - Preferred-parent changes (detach/attach) with old/new suffix.
+- Payloads are compact (`!R` + event code + 16-bit IPv6 suffixes) and share the
+  same framing as logs.
+
+Example project snippet:
+```c
+#define BR_CONF_LINK_FRAMING BR_LINK_FRAMING_COBS /* optional */
+#define BR_LOG_CONF_ENABLE 1
+#define BR_RPL_HOOKS_ENABLE 1
+#include "services/rpl-border-router/embedded/br-log-conf.h"
+```
+
 ## COBS link option
 
 The border-router link framing is selectable at build time:

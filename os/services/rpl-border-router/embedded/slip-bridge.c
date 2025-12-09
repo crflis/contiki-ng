@@ -60,6 +60,12 @@ request_prefix(void)
   uip_buf[0] = '?';
   uip_buf[1] = 'P';
   uip_len = 2;
+
+#if UIP_LLADDR_LEN >= 8
+  /* Attach IEEE address (last 8 bytes of link-layer address) for host-side use. */
+  memcpy(&uip_buf[uip_len], &uip_lladdr.addr[UIP_LLADDR_LEN - 8], 8);
+  uip_len += 8;
+#endif
   slip_write(uip_buf, uip_len);
   uipbuf_clear();
 }
