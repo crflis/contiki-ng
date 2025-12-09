@@ -51,8 +51,11 @@
 #endif
 
 #ifndef CONTIKI_TARGET_NATIVE
-/* Ship logs over SLIP with "!L" prefix while keeping normal stdout. */
-#define BR_LOG_CONF_SLIP_ENABLE 1
+/* Ship logs over the border-router link (default SLIP) with "!L" prefix while keeping stdout. */
+#define BR_LOG_CONF_ENABLE 1
+/* Optional: select COBS framing instead of SLIP for all link traffic.
+ * #define BR_CONF_LINK_FRAMING BR_LINK_FRAMING_COBS
+ */
 #include "services/rpl-border-router/embedded/br-log-conf.h"
 #endif
 

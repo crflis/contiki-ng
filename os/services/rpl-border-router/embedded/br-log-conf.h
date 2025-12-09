@@ -7,10 +7,10 @@
 #ifndef BR_LOG_CONF_H_
 #define BR_LOG_CONF_H_
 
-/* Enable/disable SLIP log redirection. Default off to avoid affecting
+/* Enable/disable log redirection to the BR link. Default off to avoid affecting
  * native builds unless explicitly requested by the project. */
-#ifndef BR_LOG_CONF_SLIP_ENABLE
-#define BR_LOG_CONF_SLIP_ENABLE 0
+#ifndef BR_LOG_CONF_ENABLE
+#define BR_LOG_CONF_ENABLE 0
 #endif
 
 /* Size of the line buffer before flushing to SLIP (excluding "!L"). */
@@ -24,10 +24,10 @@
 #endif
 
 /* Custom output hook used by log.h */
-void br_log_slip_output(const char *fmt, ...);
+void br_log_output(const char *fmt, ...);
 
-#if BR_LOG_CONF_SLIP_ENABLE
-#define LOG_CONF_OUTPUT(...) br_log_slip_output(__VA_ARGS__)
+#if BR_LOG_CONF_ENABLE
+#define LOG_CONF_OUTPUT(...) br_log_output(__VA_ARGS__)
 #endif
 
 #endif /* BR_LOG_CONF_H_ */
