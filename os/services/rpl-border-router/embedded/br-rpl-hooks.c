@@ -47,6 +47,12 @@ send_rpl_event(uint8_t evt, const uint8_t *payload, size_t len)
   br_link_write(buf, pos);
 }
 
+static const uip_ipaddr_t *
+parent_ipaddr_const(const rpl_parent_t *p)
+{
+  return p ? rpl_parent_get_ipaddr((rpl_parent_t *)p) : NULL;
+}
+
 /* Store-mode DAO route event */
 void
 ha_rpl_dao_route_event(const rpl_dag_t *dag,
@@ -100,8 +106,8 @@ ha_rpl_parent_switch(const rpl_dag_t *dag,
   uint8_t payload[4];
   size_t pos = 0;
 
-  append_ip_suffix(payload, &pos, old_parent ? rpl_parent_get_ipaddr(old_parent) : NULL);
-  append_ip_suffix(payload, &pos, new_parent ? rpl_parent_get_ipaddr(new_parent) : NULL);
+  append_ip_suffix(payload, &pos, parent_ipaddr_const(old_parent));
+  append_ip_suffix(payload, &pos, parent_ipaddr_const(new_parent));
 
   send_rpl_event(BR_RPL_EVT_PARENT, payload, pos);
 }
