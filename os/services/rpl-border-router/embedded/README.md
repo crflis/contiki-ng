@@ -72,3 +72,8 @@ Example project snippet (in `project-conf.h`), placed before including
 #define BR_LOG_CONF_ENABLE 1
 #include "services/rpl-border-router/embedded/br-log-conf.h"
 ```
+
+When SLIP framing is selected, `slip-bridge.c` handles ingress/egress. When
+COBS framing is selected, `cobs-bridge.c` is built instead to decode COBS
+payloads carried over the serial link (still using the SLIP byte pipe by
+default).
