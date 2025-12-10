@@ -41,6 +41,7 @@
 #include "net/ipv6/uip.h"
 #include "net/ipv6/uip-ds6.h"
 #include "dev/slip.h"
+#include "os/services/rpl-border-router/embedded/br-side-channel.h"
 #include <string.h>
 /*---------------------------------------------------------------------------*/
 /* Log configuration */
@@ -75,6 +76,10 @@ slip_input_callback(void)
 {
   LOG_DBG("SIN: %u\n", uip_len);
   if(uip_buf[0] == '!') {
+    if(br_side_in_dispatch('!', &uip_buf[1], uip_len > 1 ? uip_len - 1 : 0)) {
+      uipbuf_clear();
+      return;
+    }
     LOG_INFO("Got configuration message of type %c\n",
              uip_buf[1]);
     if(uip_buf[1] == 'P') {
@@ -93,6 +98,10 @@ slip_input_callback(void)
     uipbuf_clear();
 
   } else if(uip_buf[0] == '?') {
+    if(br_side_in_dispatch('?', &uip_buf[1], uip_len > 1 ? uip_len - 1 : 0)) {
+      uipbuf_clear();
+      return;
+    }
     LOG_INFO("Got request message of type %c\n", uip_buf[1]);
     if(uip_buf[1] == 'M') {
       char *hexchar = "0123456789abcdef";

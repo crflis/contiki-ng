@@ -38,7 +38,21 @@ Example project snippet:
 #define BR_LOG_CONF_ENABLE 1
 #define BR_RPL_HOOKS_ENABLE 1
 #include "services/rpl-border-router/embedded/br-log-conf.h"
+#include "services/rpl-border-router/embedded/br-rpl-hooks.h"
 ```
+
+## Side-channel dispatcher
+
+Applications can tap side-channel traffic (commands/events) without changing
+core behavior:
+
+- Inbound: register a handler via `br_side_in_register(tag, handler)`; if the
+  handler returns non-zero the frame is consumed and core handling is skipped.
+- Outbound: register a hook via `br_side_out_register(hook)` to observe raw
+  payloads (before SLIP/COBS framing), e.g., `!L`/`!R` frames.
+- Tags use the first byte of the side-channel payload (e.g., `!P`, `?X`).
+
+Include `br-side-channel.h` from your app to register handlers/hooks.
 
 ## COBS link option
 

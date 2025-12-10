@@ -4,6 +4,7 @@
 
 #include "contiki.h"
 #include "os/services/rpl-border-router/embedded/br-link.h"
+#include "os/services/rpl-border-router/embedded/br-side-channel.h"
 
 #if BR_CONF_LINK_FRAMING == BR_LINK_FRAMING_COBS
 #include "dev/cobs.h"
@@ -16,6 +17,8 @@ br_link_write(const uint8_t *payload, size_t len)
   if(payload == NULL || len == 0) {
     return;
   }
+
+  br_side_out_notify(payload, len);
 
 #if BR_CONF_LINK_FRAMING == BR_LINK_FRAMING_SLIP
   slip_write(payload, len);
