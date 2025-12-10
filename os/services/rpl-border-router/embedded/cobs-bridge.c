@@ -18,6 +18,25 @@
 
 #if BR_CONF_LINK_FRAMING == BR_LINK_FRAMING_COBS
 
+void set_prefix_64(uip_ipaddr_t *);
+
+void
+request_prefix(void)
+{
+  uint8_t buf[2 + 8];
+  size_t len = 2;
+
+  buf[0] = '?';
+  buf[1] = 'P';
+
+#if UIP_LLADDR_LEN >= 8
+  memcpy(&buf[len], &uip_lladdr.addr[UIP_LLADDR_LEN - 8], 8);
+  len += 8;
+#endif
+
+  br_link_write(buf, len);
+}
+
 static void
 cobs_input_callback(void)
 {
@@ -28,14 +47,32 @@ cobs_input_callback(void)
     return;
   }
 
-  if(dec_len > 0) {
-    char tag = (char)decoded[0];
-    if(tag == '!' || tag == '?') {
-      if(br_side_in_dispatch(tag, &decoded[1], dec_len - 1)) {
-        uipbuf_clear();
-        return;
-      }
+  if(dec_len > 0 && decoded[0] == '!') {
+    if(br_side_in_dispatch('!', &decoded[1], dec_len > 1 ? dec_len - 1 : 0)) {
+      uipbuf_clear();
+      return;
     }
+    if(dec_len > 1 && decoded[1] == 'P' && dec_len >= 10) {
+      uip_ipaddr_t prefix;
+      memset(&prefix, 0, 16);
+      memcpy(&prefix, &decoded[2], 8);
+      LOG_INFO("Setting prefix ");
+      LOG_INFO_6ADDR(&prefix);
+      LOG_INFO_("\n");
+      set_prefix_64(&prefix);
+    }
+    uipbuf_clear();
+    return;
+  }
+
+  if(dec_len > 0 && decoded[0] == '?') {
+    if(br_side_in_dispatch('?', &decoded[1], dec_len > 1 ? dec_len - 1 : 0)) {
+      uipbuf_clear();
+      return;
+    }
+    /* No default handlers for other requests; drop. */
+    uipbuf_clear();
+    return;
   }
 
   /* Not consumed: drop. */
