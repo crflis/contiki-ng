@@ -41,8 +41,11 @@
 #include "net/ipv6/uip.h"
 #include "net/ipv6/uip-ds6.h"
 #include "dev/slip.h"
+#include "os/services/rpl-border-router/embedded/br-link.h"
 #include "os/services/rpl-border-router/embedded/br-side-channel.h"
 #include <string.h>
+
+#if BR_CONF_LINK_FRAMING == BR_LINK_FRAMING_SLIP
 /*---------------------------------------------------------------------------*/
 /* Log configuration */
 #include "sys/log.h"
@@ -152,4 +155,6 @@ output(void)
 const struct uip_fallback_interface rpl_interface = {
   init, output
 };
+
+#endif /* BR_CONF_LINK_FRAMING == BR_LINK_FRAMING_SLIP */
 /*---------------------------------------------------------------------------*/
