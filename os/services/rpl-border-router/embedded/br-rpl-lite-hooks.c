@@ -71,8 +71,8 @@ ha_rpl_lite_parent_switch(const rpl_nbr_t *old_parent,
   uint8_t payload[4];
   size_t pos = 0;
 
-  append_ip_suffix(payload, &pos, old_parent ? rpl_neighbor_get_ipaddr(old_parent) : NULL);
-  append_ip_suffix(payload, &pos, new_parent ? rpl_neighbor_get_ipaddr(new_parent) : NULL);
+  append_ip_suffix(payload, &pos, old_parent ? rpl_neighbor_get_ipaddr((rpl_nbr_t *)old_parent) : NULL);
+  append_ip_suffix(payload, &pos, new_parent ? rpl_neighbor_get_ipaddr((rpl_nbr_t *)new_parent) : NULL);
 
   send_rpl_event(BR_RPL_EVT_PARENT, payload, pos);
 }
