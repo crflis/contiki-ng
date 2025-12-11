@@ -22,10 +22,10 @@ If you build your own project, include `br-log-conf.h` after setting the
 
 ## RPL side-channel hooks
 
-- Border-router builds can export RPL-classic events over the side channel
-  (using `br_link_write` framing: SLIP default, COBS optional).
-- Enable with `BR_RPL_HOOKS_ENABLE` set to `1` in `project-conf.h`. The module
-  overrides weak hooks in RPL-classic to send `!R` messages for:
+- Border-router builds can export RPL events (classic or lite) over the side
+  channel (using `br_link_write` framing: SLIP default, COBS optional).
+- Enable with `BR_RPL_HOOKS_ENABLE` set to `1` in `project-conf.h`. The modules
+  override weak hooks in RPL-classic and RPL-lite to send `!R` messages for:
   - DAO route changes (storing) with target/sender suffix and lifetime.
   - DAO SR updates (non-storing) with target/sender/parent suffix.
   - Preferred-parent changes (detach/attach) with old/new suffix.
