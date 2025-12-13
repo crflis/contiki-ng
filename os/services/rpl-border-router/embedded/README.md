@@ -26,10 +26,10 @@ If you build your own project, include `br-log-conf.h` after setting the
   channel (using `br_link_write` framing: SLIP default, COBS optional).
 - Enable with `BR_RPL_HOOKS_ENABLE` set to `1` in `project-conf.h`. The modules
   override weak hooks in RPL-classic and RPL-lite to send `!R` messages for:
-  - DAO route changes (storing) with target/sender suffix and lifetime.
-  - DAO SR updates (non-storing) with target/sender/parent suffix.
-  - Preferred-parent changes (detach/attach) with old/new suffix.
-- Payloads are compact (`!R` + event code + 16-bit IPv6 suffixes) and share the
+  - DAO route changes (storing) with target/sender IID64, prefixlen, lifetime/flags.
+  - DAO SR updates (non-storing) with target/sender/parent IID64, prefixlen, lifetime/flags.
+  - Preferred-parent changes (detach/attach) with old/new parent IID64.
+- Payloads are structured (`!R` + event code + IID64 fields) and share the
   same framing as logs.
 
 Example project snippet:

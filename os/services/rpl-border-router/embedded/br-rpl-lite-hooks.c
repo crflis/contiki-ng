@@ -16,20 +16,21 @@
 #if BR_RPL_HOOKS_ENABLE
 
 static void
-append_ip_suffix(uint8_t *buf, size_t *pos, const uip_ipaddr_t *addr)
+append_iid64(uint8_t *buf, size_t *pos, const uip_ipaddr_t *addr)
 {
-  uint16_t suffix = 0;
-  if(addr != NULL) {
-    suffix = UIP_HTONS(addr->u16[7]);
+  if(addr == NULL) {
+    memset(&buf[*pos], 0, 8);
+    *pos += 8;
+    return;
   }
-  buf[(*pos)++] = (uint8_t)(suffix >> 8);
-  buf[(*pos)++] = (uint8_t)(suffix & 0xff);
+  memcpy(&buf[*pos], &addr->u16[4], 8);
+  *pos += 8;
 }
 
 static void
 send_rpl_event(uint8_t evt, const uint8_t *payload, size_t len)
 {
-  uint8_t buf[1 + 1 + 16];
+  uint8_t buf[1 + 1 + 40];
   size_t pos = 0;
 
   buf[pos++] = '!';
@@ -50,16 +51,15 @@ send_rpl_event(uint8_t evt, const uint8_t *payload, size_t len)
 void
 ha_rpl_lite_dao_event(const rpl_dao_t *dao, const uip_ipaddr_t *from)
 {
-  uint8_t payload[1 + 1 + 6];
+  uint8_t payload[8 + 8 + 8 + 2];
   size_t pos = 0;
   uint8_t flags = (dao->lifetime == 0 ? 0x80 : 0x00) | (dao->lifetime & 0x7f);
 
+  append_iid64(payload, &pos, &dao->prefix);
+  append_iid64(payload, &pos, from);
+  append_iid64(payload, &pos, &dao->parent_addr);
   payload[pos++] = dao->prefixlen;
   payload[pos++] = flags;
-
-  append_ip_suffix(payload, &pos, &dao->prefix);
-  append_ip_suffix(payload, &pos, from);
-  append_ip_suffix(payload, &pos, &dao->parent_addr);
 
   send_rpl_event(BR_RPL_EVT_DAO_SR, payload, pos);
 }
@@ -68,11 +68,11 @@ void
 ha_rpl_lite_parent_switch(const rpl_nbr_t *old_parent,
                           const rpl_nbr_t *new_parent)
 {
-  uint8_t payload[4];
+  uint8_t payload[16];
   size_t pos = 0;
 
-  append_ip_suffix(payload, &pos, old_parent ? rpl_neighbor_get_ipaddr((rpl_nbr_t *)old_parent) : NULL);
-  append_ip_suffix(payload, &pos, new_parent ? rpl_neighbor_get_ipaddr((rpl_nbr_t *)new_parent) : NULL);
+  append_iid64(payload, &pos, old_parent ? rpl_neighbor_get_ipaddr((rpl_nbr_t *)old_parent) : NULL);
+  append_iid64(payload, &pos, new_parent ? rpl_neighbor_get_ipaddr((rpl_nbr_t *)new_parent) : NULL);
 
   send_rpl_event(BR_RPL_EVT_PARENT, payload, pos);
 }

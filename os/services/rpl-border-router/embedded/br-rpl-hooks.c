@@ -15,21 +15,23 @@
 
 /* Helper: write two-byte suffix of an IPv6 address (network order). */
 static void
-append_ip_suffix(uint8_t *buf, size_t *pos, const uip_ipaddr_t *addr)
+append_iid64(uint8_t *buf, size_t *pos, const uip_ipaddr_t *addr)
 {
-  uint16_t suffix = 0;
-  if(addr != NULL) {
-    suffix = UIP_HTONS(addr->u16[7]);
+  if(addr == NULL) {
+    memset(&buf[*pos], 0, 8);
+    *pos += 8;
+    return;
   }
-  buf[(*pos)++] = (uint8_t)(suffix >> 8);
-  buf[(*pos)++] = (uint8_t)(suffix & 0xff);
+  /* Copy last 64 bits (IID) */
+  memcpy(&buf[*pos], &addr->u16[4], 8);
+  *pos += 8;
 }
 
 /* Send an !R event with provided payload. */
 static void
 send_rpl_event(uint8_t evt, const uint8_t *payload, size_t len)
 {
-  uint8_t buf[1 + 1 + 16];
+  uint8_t buf[1 + 1 + 40];
   size_t pos = 0;
 
   buf[pos++] = '!';
@@ -62,14 +64,13 @@ ha_rpl_dao_route_event(const rpl_dag_t *dag,
                        uint8_t lifetime,
                        int is_nopath)
 {
-  uint8_t payload[1 + 1 + 4];
+  uint8_t payload[8 + 8 + 2];
   size_t pos = 0;
 
+  append_iid64(payload, &pos, target);
+  append_iid64(payload, &pos, sender);
   payload[pos++] = prefixlen;
   payload[pos++] = (uint8_t)((is_nopath ? 0x80 : 0x00) | (lifetime & 0x7f));
-
-  append_ip_suffix(payload, &pos, target);
-  append_ip_suffix(payload, &pos, sender);
 
   send_rpl_event(BR_RPL_EVT_DAO_ROUTE, payload, pos);
 }
@@ -84,15 +85,14 @@ ha_rpl_dao_sr_event(const rpl_dag_t *dag,
                     uint8_t lifetime,
                     int is_nopath)
 {
-  uint8_t payload[1 + 1 + 6];
+  uint8_t payload[8 + 8 + 8 + 2];
   size_t pos = 0;
 
+  append_iid64(payload, &pos, target);
+  append_iid64(payload, &pos, sender);
+  append_iid64(payload, &pos, parent);
   payload[pos++] = prefixlen;
   payload[pos++] = (uint8_t)((is_nopath ? 0x80 : 0x00) | (lifetime & 0x7f));
-
-  append_ip_suffix(payload, &pos, target);
-  append_ip_suffix(payload, &pos, sender);
-  append_ip_suffix(payload, &pos, parent);
 
   send_rpl_event(BR_RPL_EVT_DAO_SR, payload, pos);
 }
@@ -103,11 +103,11 @@ ha_rpl_parent_switch(const rpl_dag_t *dag,
                      const rpl_parent_t *old_parent,
                      const rpl_parent_t *new_parent)
 {
-  uint8_t payload[4];
+  uint8_t payload[16];
   size_t pos = 0;
 
-  append_ip_suffix(payload, &pos, parent_ipaddr_const(old_parent));
-  append_ip_suffix(payload, &pos, parent_ipaddr_const(new_parent));
+  append_iid64(payload, &pos, parent_ipaddr_const(old_parent));
+  append_iid64(payload, &pos, parent_ipaddr_const(new_parent));
 
   send_rpl_event(BR_RPL_EVT_PARENT, payload, pos);
 }

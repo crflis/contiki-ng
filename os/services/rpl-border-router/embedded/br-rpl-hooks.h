@@ -11,8 +11,8 @@
 #endif
 
 /* Event tags sent over the side-channel */
-#define BR_RPL_EVT_DAO_ROUTE   'd'
-#define BR_RPL_EVT_DAO_SR      's'
-#define BR_RPL_EVT_PARENT      'p'
+#define BR_RPL_EVT_DAO_ROUTE   'D'
+#define BR_RPL_EVT_DAO_SR      'S'
+#define BR_RPL_EVT_PARENT      'P'
 
 #endif /* BR_RPL_HOOKS_H_ */
