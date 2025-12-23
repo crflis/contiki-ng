@@ -50,4 +50,15 @@
 #define UIP_CONF_TCP 1
 #endif
 
+#ifndef CONTIKI_TARGET_NATIVE
+/* Ship logs over the border-router link (default SLIP) with "!L" prefix while keeping stdout. */
+#define BR_LOG_CONF_ENABLE 1
+/* Force RPL-classic so RPL hooks emit !R events. */
+#define BR_CONF_FORCE_RPL_CLASSIC 1
+/* Optional: select COBS framing instead of SLIP for all link traffic.
+ * #define BR_CONF_LINK_FRAMING BR_LINK_FRAMING_COBS
+ */
+#include "services/rpl-border-router/embedded/br-log-conf.h"
+#endif
+
 #endif /* PROJECT_CONF_H_ */

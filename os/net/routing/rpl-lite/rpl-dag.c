@@ -52,6 +52,27 @@
 #define LOG_MODULE "RPL"
 #define LOG_LEVEL LOG_LEVEL_RPL
 
+#ifdef __GNUC__
+#define RPL_HOOK_WEAK __attribute__((weak))
+#else
+#define RPL_HOOK_WEAK
+#endif
+
+/* Weak hooks for side-channel export; overridable by applications. */
+RPL_HOOK_WEAK void
+ha_rpl_lite_parent_switch(const rpl_nbr_t *old_parent, const rpl_nbr_t *new_parent)
+{
+  (void)old_parent;
+  (void)new_parent;
+}
+
+RPL_HOOK_WEAK void
+ha_rpl_lite_dao_event(const rpl_dao_t *dao, const uip_ipaddr_t *from)
+{
+  (void)dao;
+  (void)from;
+}
+
 /*---------------------------------------------------------------------------*/
 extern rpl_of_t rpl_of0, rpl_mrhof;
 static rpl_of_t * const objective_functions[] = RPL_SUPPORTED_OFS;
@@ -353,6 +374,8 @@ rpl_dag_update_state(void)
         rpl_neighbor_print_list("Parent switch");
       }
 
+      ha_rpl_lite_parent_switch(old_parent, curr_instance.dag.preferred_parent);
+
       /* Clear unprocessed_parent_switch now that we have processed it */
       curr_instance.dag.unprocessed_parent_switch = false;
     }
@@ -646,6 +669,8 @@ rpl_process_dao(uip_ipaddr_t *from, rpl_dao_t *dao)
     rpl_timers_schedule_dao_ack(from, dao->sequence);
   }
 #endif /* RPL_WITH_DAO_ACK */
+
+  ha_rpl_lite_dao_event(dao, from);
 }
 /*---------------------------------------------------------------------------*/
 #if RPL_WITH_DAO_ACK

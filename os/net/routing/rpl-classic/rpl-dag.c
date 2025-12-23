@@ -61,6 +61,23 @@
 #define LOG_MODULE "RPL"
 #define LOG_LEVEL LOG_LEVEL_RPL
 
+#ifdef __GNUC__
+#define RPL_HOOK_WEAK __attribute__((weak))
+#else
+#define RPL_HOOK_WEAK
+#endif
+
+/* Weak default for parent switch hook; can be overridden by applications. */
+RPL_HOOK_WEAK void
+ha_rpl_parent_switch(const rpl_dag_t *dag,
+                     const rpl_parent_t *old_parent,
+                     const rpl_parent_t *new_parent)
+{
+  (void)dag;
+  (void)old_parent;
+  (void)new_parent;
+}
+
 /* A configurable function called after every RPL parent switch. */
 #ifdef RPL_CALLBACK_PARENT_SWITCH
 void RPL_CALLBACK_PARENT_SWITCH(rpl_parent_t *old, rpl_parent_t *new);
@@ -238,6 +255,8 @@ rpl_parent_is_reachable(rpl_parent_t *p)
 static void
 rpl_set_preferred_parent(rpl_dag_t *dag, rpl_parent_t *p)
 {
+  rpl_parent_t *old_parent = dag->preferred_parent;
+
   if(dag == NULL || dag->preferred_parent == p) {
     return;
   }
@@ -265,6 +284,8 @@ rpl_set_preferred_parent(rpl_dag_t *dag, rpl_parent_t *p)
   nbr_table_unlock(rpl_parents, dag->preferred_parent);
   nbr_table_lock(rpl_parents, p);
   dag->preferred_parent = p;
+
+  ha_rpl_parent_switch(dag, old_parent, p);
 }
 /*---------------------------------------------------------------------------*/
 /* Greater-than function for the lollipop counter.                      */

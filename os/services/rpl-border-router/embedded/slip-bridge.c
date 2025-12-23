@@ -41,7 +41,11 @@
 #include "net/ipv6/uip.h"
 #include "net/ipv6/uip-ds6.h"
 #include "dev/slip.h"
+#include "os/services/rpl-border-router/embedded/br-link.h"
+#include "os/services/rpl-border-router/embedded/br-side-channel.h"
 #include <string.h>
+
+#if BR_CONF_LINK_FRAMING == BR_LINK_FRAMING_SLIP
 /*---------------------------------------------------------------------------*/
 /* Log configuration */
 #include "sys/log.h"
@@ -60,6 +64,12 @@ request_prefix(void)
   uip_buf[0] = '?';
   uip_buf[1] = 'P';
   uip_len = 2;
+
+#if UIP_LLADDR_LEN >= 8
+  /* Attach IEEE address (last 8 bytes of link-layer address) for host-side use. */
+  memcpy(&uip_buf[uip_len], &uip_lladdr.addr[UIP_LLADDR_LEN - 8], 8);
+  uip_len += 8;
+#endif
   slip_write(uip_buf, uip_len);
   uipbuf_clear();
 }
@@ -69,6 +79,10 @@ slip_input_callback(void)
 {
   LOG_DBG("SIN: %u\n", uip_len);
   if(uip_buf[0] == '!') {
+    if(br_side_in_dispatch('!', &uip_buf[1], uip_len > 1 ? uip_len - 1 : 0)) {
+      uipbuf_clear();
+      return;
+    }
     LOG_INFO("Got configuration message of type %c\n",
              uip_buf[1]);
     if(uip_buf[1] == 'P') {
@@ -87,6 +101,10 @@ slip_input_callback(void)
     uipbuf_clear();
 
   } else if(uip_buf[0] == '?') {
+    if(br_side_in_dispatch('?', &uip_buf[1], uip_len > 1 ? uip_len - 1 : 0)) {
+      uipbuf_clear();
+      return;
+    }
     LOG_INFO("Got request message of type %c\n", uip_buf[1]);
     if(uip_buf[1] == 'M') {
       char *hexchar = "0123456789abcdef";
@@ -137,4 +155,6 @@ output(void)
 const struct uip_fallback_interface rpl_interface = {
   init, output
 };
+
+#endif /* BR_CONF_LINK_FRAMING == BR_LINK_FRAMING_SLIP */
 /*---------------------------------------------------------------------------*/

@@ -83,7 +83,17 @@ PROCESS_THREAD(border_router_process, ev, data)
     etimer_set(&et, CLOCK_SECOND);
     request_prefix();
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-    LOG_INFO("Waiting for prefix\n");
+    LOG_INFO("Waiting for prefix (IID ");
+#if LINKADDR_SIZE >= 8
+    for(int i = LINKADDR_SIZE - 8; i < LINKADDR_SIZE; i++) {
+      LOG_INFO_("%02x", linkaddr_node_addr.u8[i]);
+    }
+#else
+    for(int i = 0; i < LINKADDR_SIZE; i++) {
+      LOG_INFO_("%02x", linkaddr_node_addr.u8[i]);
+    }
+#endif
+    LOG_INFO_(")\n");
   }
 
   NETSTACK_MAC.on();
