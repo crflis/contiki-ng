@@ -81,6 +81,13 @@
 #define LOG_MODULE "CC26x0/CC13x0"
 #define LOG_LEVEL LOG_LEVEL_MAIN
 /*---------------------------------------------------------------------------*/
+/* Allow targets (e.g., Cooja builds) to override the generated IID */
+__attribute__((weak)) void
+platform_get_iid(uint8_t *buf, uint8_t len)
+{
+  ieee_addr_cpy_to(buf, len);
+}
+/*---------------------------------------------------------------------------*/
 /** \brief Board specific iniatialisation */
 void board_init(void);
 /*---------------------------------------------------------------------------*/
@@ -119,7 +126,7 @@ set_rf_params(void)
   NETSTACK_RADIO.set_object(RADIO_PARAM_64BIT_ADDR, ext_addr, 8);
 #else
   uint16_t short_addr;
-  ieee_addr_cpy_to(ext_addr, 8);
+  platform_get_iid(ext_addr, 8);
 
   short_addr = ext_addr[7];
   short_addr |= ext_addr[6] << 8;
@@ -185,13 +192,14 @@ platform_init_stage_two()
   cc26xx_uart_set_input(serial_line_input_byte);
 #endif
 
+  uint8_t ext_addr[8];
   /* Populate linkaddr_node_addr */
 #if MAC_CONF_WITH_BLE
-  uint8_t ext_addr[8];
   ble_eui64_addr_cpy_to((uint8_t *)&ext_addr);
   memcpy(&linkaddr_node_addr, &ext_addr[8 - LINKADDR_SIZE], LINKADDR_SIZE);
 #else
-  ieee_addr_cpy_to(linkaddr_node_addr.u8, LINKADDR_SIZE);
+  platform_get_iid(ext_addr, 8);
+  memcpy(linkaddr_node_addr.u8, ext_addr, LINKADDR_SIZE);
 #endif
 
   button_hal_init();
